@@ -11,3 +11,7 @@ Goals of this project:
 - Implement a secure authentication/authorization system with well-tested cryptography libraries
 - Build and understand webhooks and API keys
 - Document the REST API with markdown
+
+## Install
+
+- Requires Go 1.22+
