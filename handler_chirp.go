@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
+	"strings"
 )
 
 const (
@@ -13,8 +15,12 @@ type chirp struct {
 	Body string `json:"body"`
 }
 
-type valid struct {
-	Valid bool `json:"valid"`
+type validResponse struct {
+	CleanedBody string `json:"cleaned_body"`
+}
+
+type errorResponse struct {
+	Error string `json:"error"`
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload any) {
@@ -26,10 +32,6 @@ func respondWithJSON(w http.ResponseWriter, code int, payload any) {
 	}
 	w.WriteHeader(code)
 	w.Write(data)
-}
-
-type errorResponse struct {
-	Error string `json:"error"`
 }
 
 func respondWithError(w http.ResponseWriter, code int, msg string) {
@@ -49,5 +51,20 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
 		return
 	}
-	respondWithJSON(w, http.StatusOK, valid{Valid: true})
+	cleanedBody := removeProfaneWords(chirp.Body)
+	respondWithJSON(w, http.StatusOK, validResponse{CleanedBody: cleanedBody})
+}
+
+func removeProfaneWords(msg string) string {
+	profaneWords := []string{"kerfuffle", "sharbert", "fornax"}
+	ret := []string{}
+	fields := strings.Fields(msg)
+	for _, w := range fields {
+		if slices.Contains(profaneWords, strings.ToLower(w)) {
+			ret = append(ret, "****")
+		} else {
+			ret = append(ret, w)
+		}
+	}
+	return strings.Join(ret, " ")
 }
