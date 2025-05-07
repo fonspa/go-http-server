@@ -42,6 +42,7 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 
 func (cfg *apiConfig) handlerDeleteAllUsers(w http.ResponseWriter, r *http.Request) {
 	if cfg.platform != "dev" {
+		log.Print("deleting users is only allowed in dev mode!")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}

@@ -37,12 +37,15 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	// FileServer
 	mux.Handle("/app/", http.StripPrefix("/app", apiCfg.middlewareMetricsInc(http.FileServer(http.Dir(rootPath)))))
+	// API
 	mux.HandleFunc("GET /api/healthz", handlerHealthz)
+	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUser)
+	mux.HandleFunc("POST /api/chirps", apiCfg.handlerCreateChirp)
+	// ADMIN
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerDisplayMetrics)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerDeleteAllUsers)
-	mux.HandleFunc("POST /api/validate_chirp", handlerValidateChirp)
-	mux.HandleFunc("POST /api/users", apiCfg.handlerCreateUser)
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,

@@ -14,6 +14,8 @@ Goals of this project:
 
 We'll be using PostgreSQL for the DB, [Goose](https://github.com/pressly/goose) for the migrations and [sqlc](https://sqlc.dev/) for generating Go code from SQL queries.
 
+There're some notes in [docs/](./docs/README.md).
+
 ## Install
 
 - Requires Go 1.22+
