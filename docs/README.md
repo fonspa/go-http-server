@@ -36,3 +36,10 @@ Cloud platforms options:
 
 Here there are two different programs that need to be deployed. You could deploy both on the same kind of places, or use a specific platform for the front-end:
 - Vercel, Netlify, Github pages...
+
+## Testing with Curl
+
+Post Json with Curl
+```shell
+curl -X POST -L -H "Content-Type:application/json" -d '{"key":"value"}' <url>
+```
