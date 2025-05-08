@@ -43,7 +43,9 @@ REST is a set of guidelines for building APIs.
 
 It's conventional to name the endpoints after the resource they represent. The name are usualy to be plural, e.g. `POST /api/chirps` to create a new "chirp".
 
-To get a *singleton*, or a single instance of a resource, the convention is to use a `GET` request to the plural name of the resource and to use an ID, e.g. `GET /api/chirps/<uuid>`.
+To get multiple chirps at once, we'd use the endpoint `GET /api/chirps`.
+
+To get a *singleton*, or a single instance of a resource, the convention is to use a `GET` request to the plural name of the resource, the same endpoint we use for getting all chirps, but to use an ID as a *path parameter*, i.e. `GET /api/chirps/<uuid>`.
 
 ## Testing with Curl
 

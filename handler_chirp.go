@@ -85,6 +85,34 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
+func (cfg *apiConfig) handlerGetChirp(w http.ResponseWriter, r *http.Request) {
+	chirpID := r.PathValue("chirpID")
+	if chirpID == "" {
+		log.Printf("User given chirp ID is empty")
+		respondWithError(w, http.StatusBadRequest, "chirp ID invalid")
+		return
+	}
+	id, err := uuid.Parse(chirpID)
+	if err != nil {
+		log.Printf("unable to parse chirp ID '%s': %v", chirpID, err)
+		respondWithError(w, http.StatusBadRequest, "chirp ID invalid")
+		return
+	}
+	dbChirp, err := cfg.db.GetChirpByID(r.Context(), id)
+	if err != nil {
+		log.Printf("unable to retrieve chirp from db: %v", err)
+		respondWithError(w, http.StatusNotFound, "unable to retrieve chirp")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, chirpResponse{
+		ID:        dbChirp.ID,
+		CreatedAt: dbChirp.CreatedAt,
+		UpdatedAt: dbChirp.UpdatedAt,
+		Body:      dbChirp.Body,
+		UserID:    dbChirp.UserID,
+	})
+}
+
 func validateChirp(msg string) (string, error) {
 	if len(msg) > chirpMaxLen {
 		return "", errors.New("chirp is too long, max size is 140 characters")
