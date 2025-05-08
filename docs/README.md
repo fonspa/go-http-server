@@ -37,9 +37,29 @@ Cloud platforms options:
 Here there are two different programs that need to be deployed. You could deploy both on the same kind of places, or use a specific platform for the front-end:
 - Vercel, Netlify, Github pages...
 
+## RESTful API
+
+REST is a set of guidelines for building APIs.
+
+It's conventional to name the endpoints after the resource they represent. The name are usualy to be plural, e.g. `POST /api/chirps` to create a new "chirp".
+
+To get multiple chirps at once, we'd use the endpoint `GET /api/chirps`.
+
+To get a *singleton*, or a single instance of a resource, the convention is to use a `GET` request to the plural name of the resource, the same endpoint we use for getting all chirps, but to use an ID as a *path parameter*, i.e. `GET /api/chirps/<uuid>`.
+
 ## Testing with Curl
 
-Post Json with Curl
+Deleting *all* users (only in "dev" mode)
 ```shell
-curl -X POST -L -H "Content-Type:application/json" -d '{"key":"value"}' <url>
+curl -X POST -L -i localhost:8080/admin/reset
+```
+
+Creating a user:
+```shell
+curl -X POST -L -H -i "Content-Type:application/json" -d '{"email":"toto@pafcorp.net"}' localhost:8080/api/users
+```
+
+Creating a chirp, with the `user_id` of a previously created user:
+```shell
+curl -X POST -L -i -H "Content-Type: application/json" -d '{"body":"Hello! My first chirp!","user_id":"cb4d8b86-9491-4b95-bc17-283ca7e83ddb"}' localhost:8080/api/chirps
 ```

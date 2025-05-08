@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"sync/atomic"
+
+	"github.com/fonspa/go-http-server/internal/database"
 )
 
 type apiConfig struct {
 	fileserverHits atomic.Int32
+	db             *database.Queries
+	platform       string
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -30,12 +34,6 @@ func (cfg *apiConfig) handlerDisplayMetrics(w http.ResponseWriter, r *http.Reque
 		</html>
 		`,
 		cfg.fileserverHits.Load()))
-}
-
-func (cfg *apiConfig) handlerResetMetrics(w http.ResponseWriter, r *http.Request) {
-	cfg.fileserverHits.Store(0)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hits reset to 0"))
 }
 
 func handlerHealthz(w http.ResponseWriter, r *http.Request) {
