@@ -47,6 +47,16 @@ To get multiple chirps at once, we'd use the endpoint `GET /api/chirps`.
 
 To get a *singleton*, or a single instance of a resource, the convention is to use a `GET` request to the plural name of the resource, the same endpoint we use for getting all chirps, but to use an ID as a *path parameter*, i.e. `GET /api/chirps/<uuid>`.
 
+## Authentication with passwords
+
+Verifying *who* a user is. Two important points when authenticating with passwords:
+- Password must be stored *hashed*.
+- You must validate user's passwords to make sure they are *strong*.
+
+Hashing prevents passwords from being read if (or *when*) someone gets access to the db. We'll use `bcrypt` package to hash passwords and compare passwords hashes.
+
+As long as the server uses HTTPS in prod, it's OK to send raw passwords in requests, because they'll be encrypted.
+
 ## Testing with Curl
 
 Deleting *all* users (only in "dev" mode)
