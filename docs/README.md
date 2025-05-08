@@ -37,6 +37,14 @@ Cloud platforms options:
 Here there are two different programs that need to be deployed. You could deploy both on the same kind of places, or use a specific platform for the front-end:
 - Vercel, Netlify, Github pages...
 
+## RESTful API
+
+REST is a set of guidelines for building APIs.
+
+It's conventional to name the endpoints after the resource they represent. The name are usualy to be plural, e.g. `POST /api/chirps` to create a new "chirp".
+
+To get a *singleton*, or a single instance of a resource, the convention is to use a `GET` request to the plural name of the resource and to use an ID, e.g. `GET /api/chirps/<uuid>`.
+
 ## Testing with Curl
 
 Deleting *all* users (only in "dev" mode)

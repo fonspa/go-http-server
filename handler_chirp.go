@@ -65,6 +65,26 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 	})
 }
 
+func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
+	chirps, err := cfg.db.GetAllChirps(r.Context())
+	if err != nil {
+		log.Printf("unable to retrieve chirps from db: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "unable to retrieve chirps")
+		return
+	}
+	var resp []chirpResponse
+	for _, c := range chirps {
+		resp = append(resp, chirpResponse{
+			ID:        c.ID,
+			CreatedAt: c.CreatedAt,
+			UpdatedAt: c.UpdatedAt,
+			Body:      c.Body,
+			UserID:    c.UserID,
+		})
+	}
+	respondWithJSON(w, http.StatusOK, resp)
+}
+
 func validateChirp(msg string) (string, error) {
 	if len(msg) > chirpMaxLen {
 		return "", errors.New("chirp is too long, max size is 140 characters")
