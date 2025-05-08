@@ -8,6 +8,7 @@ import (
 
 	"github.com/fonspa/go-http-server/internal/auth"
 	"github.com/fonspa/go-http-server/internal/database"
+	"github.com/google/uuid"
 )
 
 type userPayload struct {
@@ -16,11 +17,12 @@ type userPayload struct {
 }
 
 // NOTE: We voluntarily omit the hashed user's password in there...
-type createUserResponse struct {
-	ID        string `json:"id"`
-	CreateAt  string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
-	Email     string `json:"email"`
+type userResponse struct {
+	ID        uuid.UUID `json:"id"`
+	CreateAt  time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Email     string    `json:"email"`
+	Password  string    `json:"-"`
 }
 
 func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -46,10 +48,10 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, "unable to create new user")
 		return
 	}
-	respondWithJSON(w, http.StatusCreated, createUserResponse{
-		ID:        user.ID.String(),
-		CreateAt:  user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
+	respondWithJSON(w, http.StatusCreated, userResponse{
+		ID:        user.ID,
+		CreateAt:  user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
 	})
 }
@@ -87,10 +89,10 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, "invalid user credentials")
 		return
 	}
-	respondWithJSON(w, http.StatusOK, createUserResponse{
-		ID:        user.ID.String(),
-		CreateAt:  user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
+	respondWithJSON(w, http.StatusOK, userResponse{
+		ID:        user.ID,
+		CreateAt:  user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
 	})
 }
