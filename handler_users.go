@@ -24,7 +24,7 @@ type userPayload struct {
 // NOTE: We voluntarily omit the hashed user's password in there...
 type userResponse struct {
 	ID           uuid.UUID `json:"id"`
-	CreateAt     time.Time `json:"created_at"`
+	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	Email        string    `json:"email"`
 	Password     string    `json:"-"`
@@ -57,7 +57,7 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 	}
 	respondWithJSON(w, http.StatusCreated, userResponse{
 		ID:        user.ID,
-		CreateAt:  user.CreatedAt,
+		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
 	})
@@ -115,7 +115,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	respondWithJSON(w, http.StatusOK, userResponse{
 		ID:           user.ID,
-		CreateAt:     user.CreatedAt,
+		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 		Email:        user.Email,
 		Token:        userToken,
@@ -180,4 +180,48 @@ func (cfg *apiConfig) handlerRevokeRefreshToken(w http.ResponseWriter, r *http.R
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (cfg *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) {
+	// Get access token
+	accessToken, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "invalid bearer token")
+		return
+	}
+	userID, err := auth.ValidateJWT(accessToken, cfg.jwtSecret)
+	if err != nil {
+		log.Printf("unable to validate access JWT: %v", err)
+		respondWithError(w, http.StatusUnauthorized, "invalid access token")
+		return
+	}
+	defer r.Body.Close()
+	var payload userPayload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		log.Printf("unable to decode request: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "unable to decode request")
+		return
+	}
+	hashedPwd, err := auth.HashPassword(payload.Password)
+	if err != nil {
+		log.Printf("unable to hash password '%s': %v", payload.Password, err)
+		respondWithError(w, http.StatusInternalServerError, "unable to hash password")
+		return
+	}
+	usr, err := cfg.db.UpdateUserCredentials(r.Context(), database.UpdateUserCredentialsParams{
+		Email:          payload.Email,
+		HashedPassword: hashedPwd,
+		ID:             userID,
+	})
+	if err != nil {
+		log.Printf("unable to update user's credentials: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "unable to update user's credentials")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, userResponse{
+		ID:        usr.ID,
+		CreatedAt: usr.CreatedAt,
+		UpdatedAt: usr.UpdatedAt,
+		Email:     usr.Email,
+	})
 }

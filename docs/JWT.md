@@ -1,4 +1,4 @@
-# JWT Jason Web Tokens
+# JWT JSON Web Tokens
 
 JSON Web Tokens are a popular choice for APIs that are consumed by web applications and mobile apps.
 
