@@ -69,17 +69,7 @@ As long as the server uses HTTPS in prod, it's OK to send raw passwords in reque
 
 ### JWT
 
-JSON Web Tokens are a popular choice for APIs that are consumed by web applications and mobile apps.
-
-A JWT is a cryptographically signed JSON object containing information about a user. Once issued, the token cannot change without the server knowing.
-
-If a token is issued to Bob, Bob can make requests as Bob. He won't be able to change the token to make requests as Alice.
-
-In Go, we'll use `github.com/golang-jwt/jwt/v5` package.
-
-![JWT Lifecycle](./jwt.png)
-
-After a user enters a username and password, the server responds with a JWT token that is saved in the client's device. The token remains valid for all subsequent requests until it expires, at which point the user will need to log in again with its username/password.
+See [Json Web Tokens doc](./JWT.md).
 
 ## Testing with Curl
 
