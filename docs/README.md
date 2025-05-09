@@ -71,6 +71,10 @@ As long as the server uses HTTPS in prod, it's OK to send raw passwords in reque
 
 See [Json Web Tokens doc](./JWT.md).
 
+### Cookies
+
+See [Cookies](./COOKIES.md).
+
 ## Testing with Curl
 
 Deleting *all* users (only in "dev" mode)
