@@ -77,6 +77,10 @@ If a token is issued to Bob, Bob can make requests as Bob. He won't be able to c
 
 In Go, we'll use `github.com/golang-jwt/jwt/v5` package.
 
+![JWT Lifecycle](./jwt.png)
+
+After a user enters a username and password, the server responds with a JWT token that is saved in the client's device. The token remains valid for all subsequent requests until it expires, at which point the user will need to log in again with its username/password.
+
 ## Testing with Curl
 
 Deleting *all* users (only in "dev" mode)

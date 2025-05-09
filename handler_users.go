@@ -12,8 +12,9 @@ import (
 )
 
 type userPayload struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email            string `json:"email"`
+	Password         string `json:"password"`
+	ExpiresInSeconds int    `json:"expires_in_seconds"`
 }
 
 // NOTE: We voluntarily omit the hashed user's password in there...
@@ -23,6 +24,7 @@ type userResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Email     string    `json:"email"`
 	Password  string    `json:"-"`
+	Token     string    `json:"token"`
 }
 
 func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -89,10 +91,22 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, "invalid user credentials")
 		return
 	}
+	// Create JWT
+	if payload.ExpiresInSeconds == 0 {
+		payload.ExpiresInSeconds = 3600
+	}
+	payload.ExpiresInSeconds = min(payload.ExpiresInSeconds, 3600)
+
+	userToken, err := auth.MakeJWT(user.ID, cfg.jwtSecret, time.Duration(payload.ExpiresInSeconds)*time.Second)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "unable to create JWT for user")
+		return
+	}
 	respondWithJSON(w, http.StatusOK, userResponse{
 		ID:        user.ID,
 		CreateAt:  user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 		Email:     user.Email,
+		Token:     userToken,
 	})
 }
