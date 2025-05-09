@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fonspa/go-http-server/internal/auth"
 	"github.com/fonspa/go-http-server/internal/database"
 	"github.com/google/uuid"
 )
@@ -38,15 +39,22 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 		respondWithError(w, http.StatusInternalServerError, "unable to decode request")
 		return
 	}
+	tokenString, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		log.Printf("unable to get user bearer token: %v", err)
+		respondWithError(w, http.StatusUnauthorized, "unable to get bearer token")
+		return
+	}
+	userID, err := auth.ValidateJWT(tokenString, cfg.jwtSecret)
+	if err != nil {
+		log.Printf("unable to validate user's JWT: %v", err)
+		respondWithError(w, http.StatusUnauthorized, "unable to validate user's JWT")
+		return
+	}
 	cleanedMsg, err := validateChirp(chirp.Body)
 	if err != nil {
 		log.Printf("chirp invalid: %v", err)
 		respondWithError(w, http.StatusBadRequest, err.Error())
-	}
-	userID, err := uuid.Parse(chirp.UserID)
-	if err != nil {
-		log.Printf("Unable to decode request: %v", err)
-		respondWithError(w, http.StatusBadRequest, "unable to decode request")
 	}
 	userChirp, err := cfg.db.CreateChirp(r.Context(), database.CreateChirpParams{
 		Body:   cleanedMsg,

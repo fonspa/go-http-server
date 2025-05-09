@@ -47,6 +47,34 @@ To get multiple chirps at once, we'd use the endpoint `GET /api/chirps`.
 
 To get a *singleton*, or a single instance of a resource, the convention is to use a `GET` request to the plural name of the resource, the same endpoint we use for getting all chirps, but to use an ID as a *path parameter*, i.e. `GET /api/chirps/<uuid>`.
 
+## Authentication
+
+Verifying *who* a user is. Some of the schemes used:
+- Passwords + ID (username, email, ...)
+- 3rd party (Google, Github, ...)
+- Magic Links
+- API Keys
+
+E.g. for a CLI app, it would make the most sense to use an API key.
+
+### Authentication with passwords
+
+Two important points when authenticating with passwords:
+- Password must be stored *hashed*. **Never store passwords in plain text!**
+- You must validate user's passwords to make sure they are *strong*. The best measure of password strength is the *length* of the password. A good validation scheme should allow any special character, capitals and symbols in the password. But the *length* is the most important characteristic.
+
+Hashing prevents passwords from being read if (or *when*) someone gets access to the db. We'll use `bcrypt` package to hash passwords and compare passwords hashes. Any good and strong key derivation function will do.
+
+As long as the server uses HTTPS in prod, it's OK to send raw passwords in requests, because they'll be encrypted.
+
+### JWT
+
+See [Json Web Tokens doc](./JWT.md).
+
+### Cookies
+
+See [Cookies](./COOKIES.md).
+
 ## Testing with Curl
 
 Deleting *all* users (only in "dev" mode)
@@ -56,7 +84,12 @@ curl -X POST -L -i localhost:8080/admin/reset
 
 Creating a user:
 ```shell
-curl -X POST -L -H -i "Content-Type:application/json" -d '{"email":"toto@pafcorp.net"}' localhost:8080/api/users
+curl -X POST -L -H -i "Content-Type:application/json" -d '{"email":"toto@pafcorp.net","password":"123456"}' localhost:8080/api/users
+```
+
+Login a user:
+```shell
+curl -X POST -L -i -H "Content-Type: application/json" -d '{"email":"paf@pafcorp.net","password":"123456"}' localhost:8080/api/login
 ```
 
 Creating a chirp, with the `user_id` of a previously created user:
