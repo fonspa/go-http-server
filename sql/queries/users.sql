@@ -25,3 +25,10 @@ SET email = $1, hashed_password = $2, updated_at = NOW() AT TIME ZONE 'utc'
 WHERE id = $3
 RETURNING *;
 --
+
+-- name: UpgradeUserToRed :one
+UPDATE users
+SET is_chirpy_red = TRUE, updated_at = NOW() AT TIME ZONE 'utc'
+WHERE id = $1
+RETURNING *;
+--

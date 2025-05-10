@@ -75,6 +75,17 @@ See [Json Web Tokens doc](./JWT.md).
 
 See [Cookies](./COOKIES.md).
 
+## Webhooks
+
+A webhook is an event sent to the server by an external service when something happens.
+
+For example, a 3rd party payment service. When a user makes a payment, the payment service sends a webhook to the server so that it can make some action.
+- User makes a payment to stripe
+- stripe processes the payment
+- If the payment is successful, stripe sends an `POST` request to the server.
+
+Webhook endpoints must be *idempotent*, that is, they must produce the same result for the same input no matter how many times they are called.
+
 ## Testing with Curl
 
 Deleting *all* users (only in "dev" mode)
