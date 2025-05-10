@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -30,6 +32,7 @@ type userResponse struct {
 	Password     string    `json:"-"`
 	Token        string    `json:"token"`
 	RefreshToken string    `json:"refresh_token"`
+	IsChirpyRed  bool      `json:"is_chirpy_red"`
 }
 
 func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
@@ -56,10 +59,11 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	respondWithJSON(w, http.StatusCreated, userResponse{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
+		ID:          user.ID,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed.Bool,
 	})
 }
 
@@ -120,6 +124,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		Email:        user.Email,
 		Token:        userToken,
 		RefreshToken: refreshToken,
+		IsChirpyRed:  user.IsChirpyRed.Bool,
 	})
 }
 
@@ -219,9 +224,57 @@ func (cfg *apiConfig) handlerUpdateUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	respondWithJSON(w, http.StatusOK, userResponse{
-		ID:        usr.ID,
-		CreatedAt: usr.CreatedAt,
-		UpdatedAt: usr.UpdatedAt,
-		Email:     usr.Email,
+		ID:          usr.ID,
+		CreatedAt:   usr.CreatedAt,
+		UpdatedAt:   usr.UpdatedAt,
+		Email:       usr.Email,
+		IsChirpyRed: usr.IsChirpyRed.Bool,
 	})
+}
+
+func (cfg *apiConfig) handlerPolkaWebhook(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Event string `json:"event"`
+		Data  struct {
+			UserID string `json:"user_id"`
+		} `json:"data"`
+	}
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		log.Printf("Polka API Key not found: %v", err)
+		respondWithError(w, http.StatusUnauthorized, "polka api key not found")
+		return
+	}
+	if apiKey != cfg.polkaKey {
+		log.Printf("Invalid Polka API key")
+		respondWithError(w, http.StatusUnauthorized, "invalid API key")
+		return
+	}
+	var params parameters
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		log.Printf("Unable to decode Polka webhook request: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "unable to parse request")
+		return
+	}
+	if params.Event != "user.upgraded" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	userID, err := uuid.Parse(params.Data.UserID)
+	if err != nil {
+		log.Printf("Unable to parse user ID: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "unable to parse user ID")
+		return
+	}
+	_, err = cfg.db.UpgradeUserToRed(r.Context(), userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Printf("could not find user with this ID: %v", err)
+			respondWithError(w, http.StatusNotFound, "user not found")
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, "could not upgrade user")
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

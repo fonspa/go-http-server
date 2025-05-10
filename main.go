@@ -31,6 +31,10 @@ func main() {
 	if jwtSecret == "" {
 		log.Fatalf("you must provide a JWT_SECRET")
 	}
+	polkaKey := os.Getenv("POLKA_KEY")
+	if polkaKey == "" {
+		log.Fatalf("you must provide a POLKA_KEY")
+	}
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -46,6 +50,7 @@ func main() {
 		db:             dbQueries,
 		platform:       platform,
 		jwtSecret:      jwtSecret,
+		polkaKey:       polkaKey,
 	}
 
 	mux := http.NewServeMux()
@@ -61,6 +66,7 @@ func main() {
 	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)
 	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefreshToken)
 	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevokeRefreshToken)
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerPolkaWebhook)
 	// API PUT
 	mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUser)
 	// API DELETE
