@@ -239,6 +239,17 @@ func (cfg *apiConfig) handlerPolkaWebhook(w http.ResponseWriter, r *http.Request
 			UserID string `json:"user_id"`
 		} `json:"data"`
 	}
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		log.Printf("Polka API Key not found: %v", err)
+		respondWithError(w, http.StatusUnauthorized, "polka api key not found")
+		return
+	}
+	if apiKey != cfg.polkaKey {
+		log.Printf("Invalid Polka API key")
+		respondWithError(w, http.StatusUnauthorized, "invalid API key")
+		return
+	}
 	var params parameters
 	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
 		log.Printf("Unable to decode Polka webhook request: %v", err)

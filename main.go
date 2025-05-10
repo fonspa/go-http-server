@@ -31,6 +31,10 @@ func main() {
 	if jwtSecret == "" {
 		log.Fatalf("you must provide a JWT_SECRET")
 	}
+	polkaKey := os.Getenv("POLKA_KEY")
+	if polkaKey == "" {
+		log.Fatalf("you must provide a POLKA_KEY")
+	}
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
@@ -46,6 +50,7 @@ func main() {
 		db:             dbQueries,
 		platform:       platform,
 		jwtSecret:      jwtSecret,
+		polkaKey:       polkaKey,
 	}
 
 	mux := http.NewServeMux()
