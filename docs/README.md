@@ -77,14 +77,16 @@ See [Cookies](./COOKIES.md).
 
 ## Webhooks
 
-A webhook is an event sent to the server by an external service when something happens.
+A webhook is an event sent to the server by an external service when something happens. It is a one-way communication from a 3rd party service to the server.
 
 For example, a 3rd party payment service. When a user makes a payment, the payment service sends a webhook to the server so that it can make some action.
 - User makes a payment to stripe
 - stripe processes the payment
 - If the payment is successful, stripe sends an `POST` request to the server.
 
-Webhook endpoints must be *idempotent*, that is, they must produce the same result for the same input no matter how many times they are called.
+Webhook endpoints must be *idempotent*, that is, they must produce the same result for the same input no matter how many times they are called, because the 3rd party service might retry the request multiple times.
+
+You must be sure to *never* acknowledge the webhook request unless it is processed successfully because the 3rd party service will stop retrying if they receive a 2XX response.
 
 ## Testing with Curl
 
