@@ -1,7 +1,9 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -255,8 +257,12 @@ func (cfg *apiConfig) handlerPolkaWebhook(w http.ResponseWriter, r *http.Request
 	}
 	_, err = cfg.db.UpgradeUserToRed(r.Context(), userID)
 	if err != nil {
-		log.Printf("could not find user with this ID: %v", err)
-		respondWithError(w, http.StatusNotFound, "user not found")
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Printf("could not find user with this ID: %v", err)
+			respondWithError(w, http.StatusNotFound, "user not found")
+			return
+		}
+		respondWithError(w, http.StatusInternalServerError, "could not upgrade user")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
