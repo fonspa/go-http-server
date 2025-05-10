@@ -104,6 +104,17 @@ func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	sortOrder := r.URL.Query().Get("sort")
+	if sortOrder == "desc" {
+		slices.SortFunc(chirps, func(a, b database.Chirp) int {
+			if a.CreatedAt.Before(b.CreatedAt) {
+				return 1
+			} else if a.CreatedAt.After(b.CreatedAt) {
+				return -1
+			}
+			return 0
+		})
+	}
 	var resp []chirpResponse
 	for _, c := range chirps {
 		resp = append(resp, chirpResponse{
