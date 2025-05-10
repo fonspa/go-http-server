@@ -88,6 +88,8 @@ Webhook endpoints must be *idempotent*, that is, they must produce the same resu
 
 You must be sure to *never* acknowledge the webhook request unless it is processed successfully because the 3rd party service will stop retrying if they receive a 2XX response.
 
+Usually webhooks will come with some sort of API key for the 3rd party service to authenticate the endpoint and avoid cheats.
+
 ## Testing with Curl
 
 Deleting *all* users (only in "dev" mode)
