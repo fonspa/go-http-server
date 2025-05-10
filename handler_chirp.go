@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -74,11 +75,45 @@ func (cfg *apiConfig) handlerCreateChirp(w http.ResponseWriter, r *http.Request)
 }
 
 func (cfg *apiConfig) handlerGetChirps(w http.ResponseWriter, r *http.Request) {
-	chirps, err := cfg.db.GetAllChirps(r.Context())
-	if err != nil {
-		log.Printf("unable to retrieve chirps from db: %v", err)
-		respondWithError(w, http.StatusInternalServerError, "unable to retrieve chirps")
-		return
+	var chirps []database.Chirp
+	var err error
+	author_id := r.URL.Query().Get("author_id")
+	if author_id == "" {
+		chirps, err = cfg.db.GetAllChirps(r.Context())
+		if err != nil {
+			log.Printf("unable to retrieve chirps from db: %v", err)
+			respondWithError(w, http.StatusInternalServerError, "unable to retrieve chirps")
+			return
+		}
+	} else {
+		userID, err := uuid.Parse(author_id)
+		if err != nil {
+			log.Printf("Invalid user ID: %v", err)
+			respondWithError(w, http.StatusBadRequest, "invalid user ID")
+			return
+		}
+		// Return only the chirps for the user ID author_id
+		chirps, err = cfg.db.GetChirpsByUserID(r.Context(), userID)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				log.Printf("user not found: %v", err)
+				respondWithError(w, http.StatusNotFound, "user not found")
+				return
+			}
+			respondWithError(w, http.StatusInternalServerError, "unable to retrieve chirps for that user")
+			return
+		}
+	}
+	sortOrder := r.URL.Query().Get("sort")
+	if sortOrder == "desc" {
+		slices.SortFunc(chirps, func(a, b database.Chirp) int {
+			if a.CreatedAt.Before(b.CreatedAt) {
+				return 1
+			} else if a.CreatedAt.After(b.CreatedAt) {
+				return -1
+			}
+			return 0
+		})
 	}
 	var resp []chirpResponse
 	for _, c := range chirps {

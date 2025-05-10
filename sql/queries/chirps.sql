@@ -15,6 +15,12 @@ SELECT * from chirps
 ORDER BY created_at ASC;
 --
 
+-- name: GetChirpsByUserID :many
+SELECT * from chirps
+WHERE user_id = $1
+ORDER BY created_at ASC;
+--
+
 -- name: GetChirpByID :one
 SELECT * from chirps
 WHERE id = $1;
